@@ -28,12 +28,12 @@ std::unordered_map<std::string, TokenType> textToTokenType_g =
     {">=", TokenType::GTEQ}
 };
 
-static std::optional<TokenType> CheckTokenType(const std::string& text) {
+static std::optional<Token> CheckToken(const std::string& text) {
     auto res = textToTokenType_g.find(text);
     if (res == textToTokenType_g.end()) {
         return {};
     }
-    return res->second;
+    return Token(res->first, res->second);
 }
 
 
@@ -55,25 +55,24 @@ Token Lexer::GetToken() {
     // Check one symbol tokens
     std::string prefixOne;
     prefixOne += curChar_;
-    auto typeOne = CheckTokenType(prefixOne);
+    auto tokenOne = CheckToken(prefixOne);
     NextChar();
 
     // Check two symbols tokens
     std::string prefixTwo = prefixOne + curChar_;
-    auto typeTwo = CheckTokenType(prefixTwo);
-    if (typeTwo) {
-        token = Token(prefixTwo, *typeTwo);
+    auto tokenTwo = CheckToken(prefixTwo);
+    if (tokenTwo) {
         NextChar();
-        return token;
+        return *tokenTwo;
     }
 
     // If there is no token with prefixTwo check only first symbol 
-    if (typeOne) {
-        token = Token(prefixOne, *typeOne);
-        return token;
+    if (tokenOne) {
+        return *tokenOne;
     }
 
     // Check if string token
+    
 
 
     Abort("Unkown token{" + prefixOne + "}");

@@ -13,8 +13,7 @@ void TestLexer() {
                 ==
                 # other comment
 
-                -
-            )";
+                -)";
         Lexer lexer(code);
         while (!lexer.IsEnd()) {
             auto token = lexer.GetToken();
