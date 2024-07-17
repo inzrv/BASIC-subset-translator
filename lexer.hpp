@@ -1,7 +1,7 @@
 #include <string>
 #include <unordered_map>
 
-struct Token;
+#include "token.hpp"
 
 class Lexer {
 public:
@@ -15,58 +15,13 @@ public:
     char NextChar();
 private:
     char Peek() const;
-
+    std::optional<Token> CheckSpecialSymbolToken();
+    std::optional<Token> CheckOperatorToken();
+    std::optional<Token> CheckStringToken();
+    std::optional<Token> CheckNumberToken();
+    std::optional<Token> CheckIdentifierOrKeywordToken();
 
     const std::string sourceCode_;
     char curChar_ = '\0';
     int curPos_ = -1;
 };
-
-enum class TokenType;
-
-struct Token {
-    Token() = default;
-    Token(const std::string& text, TokenType type);
-    Token(const Token& other) = default;
-    void Print() const;
-    std::string text_;
-    TokenType type_;
-};
-
-enum class TokenType {
-    // Other
-    UNKNOWN = -2,
-    EOFT = -1,
-	NEWLINE= 0,
-	NUMBER = 1,
-	IDENT = 2,
-	STRING = 3,
-
-	// Keywords
-	LABEL = 101,
-	GOTO = 102,
-	PRINT = 103,
-	INPUT = 104,
-	LET = 105,
-	IF = 106,
-	THEN = 107,
-	ENDIF = 108,
-	WHILE = 109,
-	REPEAT = 110,
-	ENDWHILE = 111,
-
-	// Operators
-	EQ = 201, 
-	PLUS = 202,
-	MINUS = 203,
-	ASTERISK = 204,
-	SLASH = 205,
-	EQEQ = 206,
-	NOTEQ = 207,
-	LT = 208,
-	LTEQ = 209,
-	GT = 210,
-	GTEQ = 211
-};
-
-extern std::unordered_map<std::string, TokenType> textToTokenType_g;

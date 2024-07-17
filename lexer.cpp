@@ -1,82 +1,139 @@
-#include "lexer.hpp"
 #include <cassert>
+#include <cctype>
 #include <cstdio>
 #include <iostream>
 #include <string>
 #include <optional>
 
-std::unordered_map<std::string, TokenType> textToTokenType_g =
-{
-    // Other
-    {"\0", TokenType::EOFT},
-    {"\n", TokenType::NEWLINE},
-
-    // Keywords
-    {"LET", TokenType::LET},
-
-    // Operators
-    {"+",  TokenType::PLUS},
-    {"-",  TokenType::MINUS},
-    {"*",  TokenType::ASTERISK},
-    {"/",  TokenType::SLASH},
-    {"=",  TokenType::EQ},
-    {"==", TokenType::EQEQ},
-    {"!=", TokenType::NOTEQ},
-    {"<",  TokenType::LT},
-    {"<=", TokenType::LTEQ},
-    {">",  TokenType::GT},
-    {">=", TokenType::GTEQ}
-};
-
-static std::optional<Token> CheckToken(const std::string& text) {
-    auto res = textToTokenType_g.find(text);
-    if (res == textToTokenType_g.end()) {
-        return {};
-    }
-    return Token(res->first, res->second);
-}
-
+#include "lexer.hpp"
+#include "token.hpp"
 
 Lexer::Lexer(const std::string& source) : sourceCode_(source + '\n') {
     NextChar();
 }
 
 Token Lexer::GetToken() {
-    // TODO: Fix that
-    if (curChar_ == '\0') {
-        return Token("\0", TokenType::EOFT);
-    }
-
     SkipWhitespace();
     SkipComment();
 
-    Token token;
-
-    // Check one symbol tokens
-    std::string prefixOne;
-    prefixOne += curChar_;
-    auto tokenOne = CheckToken(prefixOne);
-    NextChar();
-
-    // Check two symbols tokens
-    std::string prefixTwo = prefixOne + curChar_;
-    auto tokenTwo = CheckToken(prefixTwo);
-    if (tokenTwo) {
-        NextChar();
-        return *tokenTwo;
+    auto token = CheckSpecialSymbolToken();
+    if (token) {
+        return *token;
     }
 
-    // If there is no token with prefixTwo check only first symbol 
-    if (tokenOne) {
-        return *tokenOne;
+    token = CheckOperatorToken();
+    if (token) {
+        return *token;
     }
 
-    // Check if string token
-    
+    token = CheckStringToken();
+    if (token) {
+        return *token;
+    }
 
+    token = CheckNumberToken();
+    if (token) {
+        return *token;
+    }
 
-    Abort("Unkown token{" + prefixOne + "}");
+    token = CheckIdentifierOrKeywordToken();
+    if (token) {
+        return *token;
+    }
+
+    Abort("Unkown token{" + std::string{curChar_} + "}. Position = " + std::to_string(curPos_));
     return Token("UNKNOWN", TokenType::UNKNOWN);
+}
+
+std::optional<Token> Lexer::CheckSpecialSymbolToken() {
+    auto res = g_specialSymbolsMap.find(curChar_);
+    if (res != g_specialSymbolsMap.end()) {
+        NextChar();
+        return Token(std::string{res->first}, res->second);
+    }
+    return {};
+}
+
+std::optional<Token> Lexer::CheckOperatorToken() {
+    // Check two symbols operators
+    auto res = g_operatorsMap.find(std::string{curChar_} + Peek());
+    if (res != g_operatorsMap.end()) {
+        NextChar();
+        NextChar();
+        return Token(res->first, res->second);
+    }
+
+    // Check one symbol operators
+    res = g_operatorsMap.find(std::string{curChar_});
+    if (res != g_operatorsMap.end()) {
+        NextChar();
+        return Token(res->first, res->second);
+    }
+
+    return {};
+}
+
+std::optional<Token> Lexer::CheckStringToken() {
+    if (curChar_ != '"') {
+        return {};
+    }
+    NextChar();
+    auto startPos = curPos_;
+    while (curChar_ != '"') {
+        if (curChar_ == '\r' || curChar_ == '\n' || curChar_ == '\t' || curChar_ == '\\' || curChar_ == '%') {
+            Abort("Illegal character in string. Position = " + std::to_string(curPos_));
+            return {};
+        }
+        NextChar();
+    }
+    std::string text = sourceCode_.substr(startPos, curPos_ - startPos);
+    NextChar();
+    return Token(text, TokenType::STRING);
+}
+
+std::optional<Token> Lexer::CheckNumberToken() {
+    if (!std::isdigit(curChar_)) {
+        return {};
+    }
+    auto startPos = curPos_;
+    auto nextChar = Peek();
+    while (std::isdigit(Peek())) {
+        NextChar();
+    }
+
+    if('.' == Peek()) {
+        // Decimal
+        NextChar();
+        if (!std::isdigit(Peek())) {
+            Abort("Illegal character in number. Position = " + std::to_string(curPos_ + 1));
+            return {};
+        }
+        while (std::isdigit(Peek())) {
+            NextChar();
+        }
+    }
+    NextChar();
+    std::string text = sourceCode_.substr(startPos, curPos_ - startPos);
+    return Token(text, TokenType::NUMBER);
+}
+
+std::optional<Token> Lexer::CheckIdentifierOrKeywordToken() {
+    if (!std::isalpha(curChar_)) {
+        return {};
+    }
+    auto startPos = curPos_;
+    while(std::isalnum(Peek())) {
+        NextChar();
+    }
+    NextChar();
+    auto text = sourceCode_.substr(startPos, curPos_ - startPos);
+
+    auto res = g_keywordsMap.find(text);
+    if (res != g_keywordsMap.end()) {
+        return Token(res->first, res->second);
+    }
+
+    return Token(text, TokenType::IDENT);
 }
 
 char Lexer::NextChar() {
@@ -90,7 +147,7 @@ char Lexer::NextChar() {
 }
 
 char Lexer::Peek() const {
-    return (curChar_ + 1 >= sourceCode_.size()) ? '\0' : sourceCode_[curPos_ + 1];
+    return (curPos_ + 1 >= sourceCode_.size()) ? '\0' : sourceCode_[curPos_ + 1];
 }
 
 char Lexer::GetCurChar() const {
@@ -117,14 +174,4 @@ void Lexer::SkipComment() {
 
 void Lexer::Abort(const std::string &message) const {
     std::cerr << "Lexer::Abort: " << message << std::endl;
-}
-
-Token::Token(const std::string& text, TokenType type) :text_(text), type_(type) {}
-
-void Token::Print() const {
-    if (TokenType::NEWLINE == type_) {
-        printf("{\\n}");
-    } else {
-        printf("{%s}", text_.c_str());
-    }
 }
