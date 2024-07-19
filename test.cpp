@@ -1,5 +1,6 @@
 #include "test.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 #include "token.hpp"
 
 #include <cctype>
@@ -8,19 +9,23 @@
 #include <string>
 
 void TestLexer() {
-    {        
-        const std::string code = 
-            R"(LET foo = bar
-            # comment
-            IF 1.123 == 2 THEN "true")";
-        Lexer lexer(code);
+    {   
+        Lexer lexer("../test_code/prog.tt");
         while (!lexer.IsEnd()) {
             auto token = lexer.GetToken();
             token.Print();
-            if (TokenType::UNKNOWN == token.type_) {
+            if (TokenType::UNKNOWN == token.GetType()) {
                 break;
             }
         }
         printf("\n");
+    }
+}
+
+void TestParser() {
+    {
+        Lexer lexer{"../test_code/prog.tt"};
+        Parser parser{lexer};
+        parser.Program();
     }
 }

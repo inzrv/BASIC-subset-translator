@@ -2,5 +2,6 @@
 
 
 int main() {
-    TestLexer();
+    // TestLexer();
+    TestParser();
 }

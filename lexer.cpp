@@ -4,11 +4,25 @@
 #include <iostream>
 #include <string>
 #include <optional>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
 
 #include "lexer.hpp"
 #include "token.hpp"
 
-Lexer::Lexer(const std::string& source) : sourceCode_(source + '\n') {
+Lexer::Lexer(const std::string& fileName) {
+    std::ifstream file(fileName);
+
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file " + fileName);
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+
+    sourceCode_ = buffer.str();
+    sourceCode_ += '\n';
     NextChar();
 }
 

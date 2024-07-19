@@ -1,0 +1,3 @@
+PRINT "false"
+# comment
+PRINT "true"

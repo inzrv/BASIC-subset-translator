@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <unordered_map>
 
@@ -5,7 +7,7 @@
 
 class Lexer {
 public:
-    explicit Lexer(const std::string& source);
+    explicit Lexer(const std::string& fileName);
     void Abort(const std::string& message) const ;
     char GetCurChar() const;
     bool IsEnd() const;
@@ -21,7 +23,7 @@ private:
     std::optional<Token> CheckNumberToken();
     std::optional<Token> CheckIdentifierOrKeywordToken();
 
-    const std::string sourceCode_;
+    std::string sourceCode_;
     char curChar_ = '\0';
     int curPos_ = -1;
 };

@@ -77,7 +77,9 @@ const std::unordered_map<TokenType, std::string> g_tokenTypeNamesMap =
 	{TokenType::GTEQ, "GTEQ"}
 };
 
-Token::Token(const std::string& text, TokenType type) :text_(text), type_(type) {}
+Token::Token() : text_("DEFAULT"), type_(TokenType::UNKNOWN) {}
+
+Token::Token(const std::string& text, TokenType type) : text_(text), type_(type) {}
 
 size_t std::hash<TokenType>::operator()(TokenType type) const noexcept {
     return static_cast<size_t>(type);
@@ -97,4 +99,18 @@ void Token::Print() const {
     } else {
         printf("{%s, %s}\n", text_.c_str(), name.c_str());
     }
+}
+
+std::string Token::GetText() const {
+    if (TokenType::NEWLINE == type_) {
+        return "\\n";
+    } else if (TokenType::EOFT == type_) {
+        return "\\0";
+    } else {
+        return text_;
+    }
+}
+
+TokenType Token::GetType() const {
+    return type_;
 }

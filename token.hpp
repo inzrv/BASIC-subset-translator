@@ -40,10 +40,13 @@ enum class TokenType {
 };
 
 struct Token {
-    Token() = default;
+    Token();
     Token(const std::string& text, TokenType type);
     Token(const Token& other) = default;
     void Print() const;
+	TokenType GetType() const;
+	std::string GetText() const;
+private:
     std::string text_;
     TokenType type_;
 };
