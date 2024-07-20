@@ -1,3 +1,17 @@
-PRINT "false"
-# comment
-PRINT "true"
+PRINT "string"
+
+IF 1 > 2 THEN
+    PRINT "false"
+ENDIF
+
+WHILE 5 > 6 REPEAT
+   PRINT "false"
+ENDWHILE
+
+LABEL l1
+
+GOTO l1
+
+LET foo = 1
+
+INPUT bar
