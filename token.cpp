@@ -81,8 +81,17 @@ Token::Token() : text_("DEFAULT"), type_(TokenType::UNKNOWN) {}
 
 Token::Token(const std::string& text, TokenType type) : text_(text), type_(type) {}
 
+bool Token::operator==(const Token& other) const {
+    return (text_ == other.text_ && type_ == other.type_);
+}
+
 size_t std::hash<TokenType>::operator()(TokenType type) const noexcept {
     return static_cast<size_t>(type);
+}
+
+size_t std::hash<Token>::operator()(Token token) const noexcept {
+    return std::hash<std::string>{}(token.GetText());
+    // return static_cast<size_t>(type);
 }
 
 void Token::Print() const {

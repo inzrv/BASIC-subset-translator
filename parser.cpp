@@ -13,6 +13,11 @@ void Parser::Program() {
     while (!CheckCurToken(TokenType::EOFT)) {
         Statement();
     }
+
+    if (!CheckAllLabelsAreDeclared()) {
+        // TODO: Print this undeclared label
+        Abort("Attempting to GOTO to undeclared label!");
+    }
 }
 
 // statement ::= 
@@ -86,18 +91,26 @@ void Parser::WhileStatement() {
 void Parser::LabelStatement() {
     std::cout << "Parser::LabelStatement()\n";
     NextToken();
+    if (labelsDeclared_.find(curToken_) != labelsDeclared_.end()) {
+        Abort("Label already exists: " + curToken_.GetText());
+    }
+    labelsDeclared_.insert(curToken_);
     Match(TokenType::IDENT);
 }
 
 void Parser::GoToStatement() {
     std::cout << "Parser::GoToStatement()\n";
     NextToken();
+    labelsGoTo_.insert(curToken_);
     Match(TokenType::IDENT);
 }
 
 void Parser::LetStatement() {
     std::cout << "Parser::LetStatement()\n";
     NextToken();
+
+    symbols_.insert(curToken_);
+
     Match(TokenType::IDENT);
     Match(TokenType::EQ);
     Expression();
@@ -106,18 +119,70 @@ void Parser::LetStatement() {
 void Parser::InputStatement() {
     std::cout << "Parser::InputStatement()\n";
     NextToken();
+
+    symbols_.insert(curToken_);
+
     Match(TokenType::IDENT);
 }
 
-
-void Parser::Expression() {
-    NextToken();
+void Parser::Comparsion() {
+    std::cout << "Parser::Comparsion()\n";
+    Expression(); // skip all tokens from expression
+    if (!IsComparsionOperator()) {
+        UnexpectedTokenAbort();
+    } else {
+        NextToken();
+        Expression();
+    }
 }
 
-void Parser::Comparsion() {
-    NextToken();
-    NextToken();
-    NextToken();
+// expression ::= term {( "-" | "+" ) term}
+void Parser::Expression() {
+    std::cout << "Parser::Expression()\n";
+    Term();
+    // Why do we expect more than 1 sign?
+    // TODO: Check later
+    while(IsSign()) {
+        NextToken();
+        Term();
+    }
+}
+
+// term ::= unary {( "/" | "*" ) unary}
+void Parser::Term() {
+    std::cout << "Parser::Term()\n";
+    Unary();
+    // Why do we expect more than 1 operator?
+    // TODO: Check later
+    while(IsMultOrDiv()) {
+        NextToken();
+        Unary();
+    }
+}
+
+// unary ::= ["+" | "-"] primary
+void Parser::Unary() {
+    std::cout << "Parser::Unary()\n";
+    if (IsSign()) {
+        NextToken();
+    }
+    Primary();
+}
+
+// primary ::= number | ident
+void Parser::Primary() {
+    std::cout << "Parser::Primary():" << curToken_.GetText() << std::endl;
+    if (CheckCurToken(TokenType::IDENT)) {
+        // TODO: Replace with contains() ?
+        if (symbols_.find(curToken_) == symbols_.end()) {
+            Abort("Referencing variable before assignment: " + curToken_.GetText());
+        }
+        NextToken();
+    } else if (CheckCurToken(TokenType::NUMBER)) {
+        NextToken();
+    } else {
+        UnexpectedTokenAbort();
+    }
 }
 
 void Parser::NewLine() {
@@ -131,6 +196,15 @@ bool Parser::CheckCurToken(TokenType type) const {
 
 bool Parser::CheckPeekToken(TokenType type) const {
     return type == peekToken_.GetType();
+}
+
+bool Parser::CheckAllLabelsAreDeclared() const {
+    for (const auto& label : labelsGoTo_) {
+        if (labelsDeclared_.find(label) == labelsDeclared_.end()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void Parser::Match(TokenType type) {
@@ -173,4 +247,25 @@ void Parser::SkipNewLines() {
     while (CheckCurToken(TokenType::NEWLINE)) {
         NextToken();
     }
+}
+
+bool Parser::IsComparsionOperator() {
+    auto type = curToken_.GetType();
+    return (
+        type == TokenType::EQEQ ||
+        type == TokenType::NOTEQ ||
+        type == TokenType::LT ||
+        type == TokenType::LTEQ ||
+        type == TokenType::GT ||
+        type == TokenType:: GTEQ);
+}
+
+bool Parser::IsSign() {
+    auto type = curToken_.GetType();
+    return (type == TokenType::PLUS || type == TokenType::MINUS);
+}
+
+bool Parser::IsMultOrDiv() {
+    auto type = curToken_.GetType();
+    return (type == TokenType::ASTERISK || type == TokenType::SLASH);
 }

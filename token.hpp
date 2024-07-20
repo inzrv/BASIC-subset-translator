@@ -43,6 +43,7 @@ struct Token {
     Token();
     Token(const std::string& text, TokenType type);
     Token(const Token& other) = default;
+	bool operator==(const Token& other) const;
     void Print() const;
 	TokenType GetType() const;
 	std::string GetText() const;
@@ -55,6 +56,13 @@ namespace std {
     template <>
     struct hash<TokenType> {
         std::size_t operator()(TokenType type) const noexcept;
+    };
+}
+
+namespace std {
+    template <>
+    struct hash<Token> {
+        std::size_t operator()(Token token) const noexcept;
     };
 }
 
