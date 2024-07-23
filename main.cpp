@@ -3,5 +3,6 @@
 
 int main() {
     // TestLexer();
-    TestParser();
+    // TestParser();
+    TestEmitter();
 }

@@ -2,6 +2,7 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "token.hpp"
+#include "emitter.hpp"
 
 #include <cctype>
 #include <cstdio>
@@ -10,7 +11,7 @@
 
 void TestLexer() {
     {   
-        Lexer lexer("../test_code/prog.tt");
+        Lexer lexer("../input/prog.tt");
         while (!lexer.IsEnd()) {
             auto token = lexer.GetToken();
             token.Print();
@@ -24,8 +25,18 @@ void TestLexer() {
 
 void TestParser() {
     {
-        Lexer lexer{"../test_code/prog.tt"};
-        Parser parser{lexer};
+        // Lexer lexer{"../input/prog.tt"};
+        // Parser parser{lexer};
+        // parser.Program();
+    }
+}
+
+void TestEmitter() {
+    {
+        Lexer lexer{"../input/prog.tt"};
+        Emitter emitter("../output/prog.c");
+        Parser parser{lexer, emitter};
         parser.Program();
+        emitter.Write();
     }
 }

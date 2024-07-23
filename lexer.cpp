@@ -14,6 +14,7 @@
 Lexer::Lexer(const std::string& fileName) {
     std::ifstream file(fileName);
 
+    // TODO: handle this exception
     if (!file.is_open()) {
         throw std::runtime_error("Could not open file " + fileName);
     }

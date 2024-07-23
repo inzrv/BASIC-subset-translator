@@ -4,6 +4,8 @@ project(TeenyTiny)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(TeenyTiny main.cpp
+                         emitter.hpp
+                         emitter.cpp
                          parser.cpp
                          parser.hpp
                          lexer.cpp

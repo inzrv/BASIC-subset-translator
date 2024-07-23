@@ -1,12 +1,13 @@
 #pragma once
 
 #include "lexer.hpp"
+#include "emitter.hpp"
 
 #include <unordered_set>
 
 class Parser {
 public:
-    explicit Parser(Lexer& lexer);
+    Parser(Lexer& lexer, Emitter& emitter);
     void Program();
     void Statement();
     void PrintStatement();
@@ -36,6 +37,8 @@ private:
     bool CheckAllLabelsAreDeclared() const;
 
     Lexer& lexer_;
+    Emitter& emitter_;
+
     Token curToken_;
     Token peekToken_;
     std::unordered_set<Token> labelsDeclared_;
