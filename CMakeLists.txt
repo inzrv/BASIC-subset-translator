@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(TeenyTiny)
+project(bst)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -14,5 +14,5 @@ set(SOURCES
     ${SOURCE_DIR}/test.cpp
 )
 
-add_executable(TeenyTiny ${SOURCES})
-target_include_directories(TeenyTiny PRIVATE ${SOURCE_DIR})
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${SOURCE_DIR})
