@@ -1,3 +1,4 @@
+import sys
 import subprocess
 
 def format_c_code_file(input_file: str, output_file: str):
@@ -20,6 +21,16 @@ def format_c_code_file(input_file: str, output_file: str):
     with open(output_file, 'w') as f:
         f.write(formatted_code)
 
-input_file = './output/prog.c'
-output_file = './output/formatted_prog.c'
-format_c_code_file(input_file, output_file)
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python format_code.py <file1> [file2]")
+        sys.exit(1)
+    
+    input_file = sys.argv[1]
+    output_file = sys.argv[2] if len(sys.argv) > 2 else input_file
+
+    format_c_code_file(input_file, output_file)
+
+
+if __name__ == "__main__":
+    main()
