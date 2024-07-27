@@ -1,11 +1,9 @@
 import subprocess
 
 def format_c_code_file(input_file: str, output_file: str):
-    # Чтение содержимого исходного файла
     with open(input_file, 'r') as f:
         code = f.read()
 
-    # Запуск clang-format с помощью subprocess
     process = subprocess.Popen(
         ['clang-format'],
         stdin=subprocess.PIPE,
@@ -19,7 +17,6 @@ def format_c_code_file(input_file: str, output_file: str):
     
     formatted_code = stdout.decode('utf-8')
     
-    # Запись отформатированного кода в выходной файл
     with open(output_file, 'w') as f:
         f.write(formatted_code)
 
